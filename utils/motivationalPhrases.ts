@@ -1,13 +1,13 @@
 export const motivationalPhrases = [
-  '保持专注，你已经做得很好',
-  '坚持就是胜利',
-  '专注当下，超越自我',
-  '静心专注，收获成长',
-  '一步一个脚印',
-  '专注成就梦想',
-  '保持节奏，继续前进',
-  '享受专注的时刻',
-  '把握当下，砥砺前行',
-  '保持热爱，奔赴山海'
+  '行百里者半九十',
+  '行者常至，为者常成',
+  '山高月小，水落石出',
+  '志之所趋，无远弗届',
+  '九层之台，起于累土',
+  'Halfway is the hardest',
+  'Patience builds great things',
+  'Small steps lead far',
+  'Steady drops carve stone',
+  'Finish what you start'
 ];
 

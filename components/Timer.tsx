@@ -11,7 +11,7 @@ const FOCUS_TIME = 3;    // 3 seconds for testing
 const REST_TIME = 2;     // 2 seconds for testing
 const LONG_REST_TIME = 15 * 60; // 15 minutes in seconds
 const FOCUS_IMAGES = 4;    // 专注状态图片数量
-const FOCUS_COUNT_FOR_LONG_REST = 4; // 4个专注后进入长休息
+const FOCUS_COUNT_FOR_LONG_REST = 4; // 4次专注后进入长休息
 
 const initialState: TimerState = {
   mode: 'focus',
@@ -130,7 +130,7 @@ export default function Timer() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div 
-        className="w-[320px] h-[480px] text-white shadow-xl relative overflow-hidden rounded-2xl"
+        className="w-[320px] h-[480px] text-white shadow-xl relative overflow-hidden"
         style={getBackgroundStyle()}
       >
         {/* 半透明遮罩 - 使用渐变背景 */}
@@ -139,19 +139,19 @@ export default function Timer() {
         {/* 内容区域 */}
         <div className="relative z-10 h-full flex flex-col">
           {/* 顶部标语 */}
-          <header className="flex-none pt-6 px-8">
-            <h1 className="text-xl font-medium text-center leading-relaxed tracking-wide min-h-[3rem]">
+          <header className="flex-none pt-4 px-8">
+            <h1 className="text-lg font-normal text-center leading-relaxed tracking-wide min-h-[3rem]">
               {state.mode === 'focus' 
                 ? motivationalPhrases[currentPhraseIndex]
                 : state.mode === 'long-rest'
-                ? '恭喜完成4个专注！'
+                ? '恭喜完成4次专注！'
                 : '闭上眼睛休息一下'}
             </h1>
           </header>
 
           {/* 中间计时器区域 */}
-          <div className="flex-1 flex flex-col items-center justify-center -mt-6">
-            <div className="relative mb-12">
+          <div className="flex-1 flex flex-col items-center justify-center -mt-12">
+            <div className="relative mb-8">
               {/* 计时器圆环 */}
               <svg className="w-[240px] h-[240px] transform -rotate-90">
                 <circle
@@ -186,7 +186,7 @@ export default function Timer() {
             </div>
 
             {/* 按钮区域 */}
-            <div className="space-y-2.5 w-full flex flex-col items-center">
+            <div className="space-y-2.5 w-full flex flex-col items-center -mt-2">
               <div className="w-56">
                 {state.isRunning ? (
                   <Button
@@ -247,7 +247,7 @@ export default function Timer() {
           </div>
 
           {/* 底部计数器 */}
-          <footer className="flex-none pb-6 px-8">
+          <footer className="flex-none pb-8 px-8">
             <div className="flex justify-center items-center">
               <span className="text-sm font-medium tracking-wider opacity-80">
                 今天已完成 {state.todayCount} 次专注

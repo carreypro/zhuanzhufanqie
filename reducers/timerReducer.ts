@@ -1,9 +1,9 @@
 import { TimerState, TimerAction } from '../types/timer'
 
-const FOCUS_TIME = 3;    // 3 seconds for testing
-const REST_TIME = 2;     // 2 seconds for testing
+const FOCUS_TIME = 25 * 60;    // 25 minutes in seconds
+const REST_TIME = 5 * 60;     // 5 minutes in seconds
 const LONG_REST_TIME = 15 * 60; // 15 minutes in seconds
-const FOCUS_COUNT_FOR_LONG_REST = 4; // 4个专注后进入长休息
+const FOCUS_COUNT_FOR_LONG_REST = 4; // 4次专注后进入长休息
 
 export function timerReducer(state: TimerState, action: TimerAction): TimerState {
   console.log('Reducer action:', action.type, 'Current state:', state);

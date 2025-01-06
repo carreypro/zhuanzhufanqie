@@ -5,7 +5,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
     timerState: {
       mode: 'focus',
-      timeLeft: 25 * 60,
+      timeLeft: 25 * 60,  // 25分钟专注
       isRunning: false,
       todayCount: 0,
       focusCount: 0,
@@ -13,6 +13,23 @@ chrome.runtime.onInstalled.addListener(() => {
     }
   });
 });
+
+// 更新徽章文字
+function updateBadge(state) {
+  if (!state.isRunning && state.mode === 'rest') {
+    // 休息模式且未开始时显示"休息"
+    chrome.action.setBadgeText({ text: '休息' });
+    chrome.action.setBadgeBackgroundColor({ color: '#9E9E9E' });  // 浅灰色
+  } else if (state.isRunning) {
+    // 运行中显示剩余分钟数
+    const minutes = Math.ceil(state.timeLeft / 60);
+    chrome.action.setBadgeText({ text: minutes.toString() });
+    chrome.action.setBadgeBackgroundColor({ color: '#9E9E9E' });  // 浅灰色
+  } else {
+    // 其他情况清除徽章
+    chrome.action.setBadgeText({ text: '' });
+  }
+}
 
 // 监听来自前台的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -45,9 +62,9 @@ function startTimer() {
           'focus';
         
         newState.mode = newMode;
-        newState.timeLeft = newMode === 'focus' ? 25 * 60 : 
-                          newMode === 'rest' ? 5 * 60 : 
-                          15 * 60;
+        newState.timeLeft = newMode === 'focus' ? 25 * 60 :  // 25分钟专注
+                          newMode === 'rest' ? 5 * 60 :      // 5分钟休息
+                          15 * 60;                           // 15分钟长休息
         newState.isRunning = false;
         newState.todayCount = newState.mode === 'focus' ? 
           newState.todayCount : newState.todayCount + 1;
@@ -67,6 +84,9 @@ function startTimer() {
         timer = null;
       }
       
+      // 更新徽章
+      updateBadge(newState);
+      
       await chrome.storage.local.set({ timerState: newState });
       
       // 广播状态更新
@@ -80,4 +100,6 @@ function pauseTimer() {
     clearInterval(timer);
     timer = null;
   }
+  // 清除徽章
+  chrome.action.setBadgeText({ text: '' });
 } 

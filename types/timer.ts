@@ -4,6 +4,7 @@ export type TimerState = {
   isRunning: boolean;
   todayCount: number;
   focusCount: number;
+  loadedFromStorage?: boolean;
 };
 
 export type TimerAction =
@@ -12,5 +13,6 @@ export type TimerAction =
   | { type: 'RESUME' }
   | { type: 'RESET' }
   | { type: 'SKIP' }
-  | { type: 'TICK' };
+  | { type: 'TICK' }
+  | { type: 'LOAD_STATE', payload: TimerState };
 

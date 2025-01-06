@@ -19,12 +19,58 @@ const initialState: TimerState = {
   isRunning: false,
   todayCount: 0,
   focusCount: 0,
-}
+  loadedFromStorage: false
+};
 
 export default function Timer() {
   const [state, dispatch] = useReducer(timerReducer, initialState)
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
   const [currentImageIndex, setCurrentImageIndex] = useState(1)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // 从 Chrome 存储加载状态
+  useEffect(() => {
+    chrome.storage.local.get(['timerState', 'currentImageIndex'], (result) => {
+      if (result.timerState) {
+        const savedState = result.timerState;
+        // 检查是否是同一天
+        const lastDate = new Date(savedState.lastSaved).toDateString();
+        const today = new Date().toDateString();
+        
+        if (lastDate !== today) {
+          // 如果不是同一天，重置今日计数
+          dispatch({ type: 'LOAD_STATE', payload: { ...savedState, todayCount: 0, loadedFromStorage: true } });
+        } else {
+          dispatch({ type: 'LOAD_STATE', payload: { ...savedState, loadedFromStorage: true } });
+        }
+      }
+      // 恢复保存的图片索引
+      if (result.currentImageIndex) {
+        setCurrentImageIndex(result.currentImageIndex);
+      }
+      // 标记组件已完成初始加载
+      setIsMounted(true);
+    });
+
+    // 监听来自后台的状态更新
+    const listener = (message: any) => {
+      if (message.type === 'STATE_UPDATED') {
+        dispatch({ type: 'LOAD_STATE', payload: { ...message.state, loadedFromStorage: true } });
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
+  }, []);
+
+  // 保存状态到 Chrome 存储
+  useEffect(() => {
+    chrome.storage.local.set({
+      timerState: {
+        ...state,
+        lastSaved: new Date().toISOString()
+      }
+    });
+  }, [state]);
 
   // 计算进度
   const calculateProgress = () => {
@@ -48,11 +94,13 @@ export default function Timer() {
     };
   }
 
-  // 随机切换背景图片
+  // 随机切换背景图片并保存
   const changeBackgroundImage = () => {
     if (state.mode === 'focus') {
       const nextIndex = Math.floor(Math.random() * FOCUS_IMAGES) + 1;
       setCurrentImageIndex(nextIndex);
+      // 保存当前图片索引
+      chrome.storage.local.set({ currentImageIndex: nextIndex });
     }
   }
 
@@ -83,46 +131,53 @@ export default function Timer() {
     }
   }, [state.timeLeft, state.mode]);
 
+  // 修改背景图片更换逻辑
   useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (state.isRunning) {
-      timer = setInterval(() => {
-        dispatch({ type: 'TICK' })
-      }, 1000)
-    }
-    return () => clearInterval(timer)
-  }, [state.isRunning])
+    // 添加 isMounted 检查
+    if (!isMounted) return;
 
-  useEffect(() => {
-    if (state.mode === 'focus' && state.timeLeft === FOCUS_TIME) {
-      setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % motivationalPhrases.length)
+    // 只在以下条件同时满足时更换图片：
+    // 1. 模式为专注模式
+    // 2. 时间为初始时间（新的专注）
+    // 3. 计时器未运行
+    // 4. 不是从存储中加载的状态
+    if (state.mode === 'focus' && 
+        state.timeLeft === FOCUS_TIME && 
+        !state.isRunning && 
+        !state.loadedFromStorage) {
+      setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % motivationalPhrases.length);
       changeBackgroundImage();
     }
-  }, [state.mode, state.timeLeft])
+  }, [state.mode, state.timeLeft, state.isRunning, state.loadedFromStorage, isMounted]);
 
   const handleStart = () => {
     console.log('Starting timer...')
     dispatch({ type: 'START' })
+    chrome.runtime.sendMessage({ type: 'START_TIMER' });
   }
 
   const handlePause = () => {
     console.log('Pausing timer...')
     dispatch({ type: 'PAUSE' })
+    chrome.runtime.sendMessage({ type: 'PAUSE_TIMER' });
   }
 
   const handleResume = () => {
     console.log('Resuming timer...')
     dispatch({ type: 'RESUME' })
+    chrome.runtime.sendMessage({ type: 'START_TIMER' });
   }
 
   const handleAbandon = () => {
     console.log('Abandoning timer...')
     dispatch({ type: 'RESET' })
+    chrome.runtime.sendMessage({ type: 'PAUSE_TIMER' });
   }
 
   const handleSkip = () => {
     console.log('Skipping timer...')
     dispatch({ type: 'SKIP' })
+    chrome.runtime.sendMessage({ type: 'PAUSE_TIMER' });
   }
 
   const { radius, circumference, offset } = calculateCirclePath();

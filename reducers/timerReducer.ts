@@ -9,20 +9,28 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
   console.log('Reducer action:', action.type, 'Current state:', state);
   
   switch (action.type) {
+    case 'LOAD_STATE':
+      return {
+        ...action.payload,
+        loadedFromStorage: true
+      };
     case 'START':
       return {
         ...state,
         isRunning: true,
+        loadedFromStorage: false
       };
     case 'PAUSE':
       return {
         ...state,
         isRunning: false,
+        loadedFromStorage: false
       };
     case 'RESUME':
       return {
         ...state,
         isRunning: true,
+        loadedFromStorage: false
       };
     case 'RESET':
       return {
@@ -31,6 +39,7 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
                  state.mode === 'rest' ? REST_TIME :
                  LONG_REST_TIME,
         isRunning: false,
+        loadedFromStorage: false
       };
     case 'SKIP':
       const skipToMode = state.mode === 'focus' ? 
@@ -46,7 +55,8 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
         isRunning: false,
         focusCount: state.mode === 'focus' ? 
           ((state.focusCount + 1) % FOCUS_COUNT_FOR_LONG_REST) : 
-          state.focusCount
+          state.focusCount,
+        loadedFromStorage: false
       };
     case 'TICK':
       if (state.timeLeft <= 0) {
@@ -65,12 +75,14 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
           todayCount: state.mode === 'focus' ? state.todayCount + 1 : state.todayCount,
           focusCount: state.mode === 'focus' ? 
             ((state.focusCount + 1) % FOCUS_COUNT_FOR_LONG_REST) : 
-            state.focusCount
+            state.focusCount,
+          loadedFromStorage: false
         };
       }
       return {
         ...state,
         timeLeft: state.timeLeft - 1,
+        loadedFromStorage: false
       };
     default:
       return state;
